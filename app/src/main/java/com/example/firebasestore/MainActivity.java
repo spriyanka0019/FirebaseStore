@@ -4,9 +4,14 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -21,9 +26,15 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
+import com.google.firebase.firestore.GeoPoint;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.ServerTimestamp;
 
+import java.sql.Time;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,6 +49,21 @@ public class MainActivity extends Activity {
     private Button button;
     private TextView textView;
 
+    RecyclerView recyclerView;
+    Adapter adapter;
+    String[] items = new String[8];
+
+    String[] fixedItems = {"CarID","TripID","SoC","Distance","Speed","TerrainBumpCounts","Location","ACStatus"};
+
+    LinearLayoutManager layoutManager;
+    DecimalFormat df = new DecimalFormat();
+    Long GPSLockStatus;
+
+    public static int Text_Green = R.color.colorPrimaryDark;
+    public static int Text_Red = R.color.colorAccent;
+
+
+
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -46,30 +72,47 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        editTextTitle = (EditText) findViewById(R.id.edit_text_title);
-        editTextDescription = (EditText) findViewById(R.id.edit_text_description);
+        df.setMaximumFractionDigits(3);
+//        editTextTitle = (EditText) findViewById(R.id.edit_text_title);
+//        editTextDescription = (EditText) findViewById(R.id.edit_text_description);
         textView = (TextView) findViewById(R.id.text1);
+        recyclerView = (RecyclerView) findViewById(R.id.recyclerview);
 
-        button = (Button) findViewById(R.id.button);
+//        button = (Button) findViewById(R.id.button);
+        getNotes();
+    }
+
+    private void initRecyclerView(){
+        // use this setting to improve performance if you know that changes
+        // in content do not change the layout size of the RecyclerView
+        recyclerView.setHasFixedSize(true);
+//        final LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+//        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+//        recyclerView.setLayoutManager(new LinearLayoutManager(recyclerView.getContext()));
+        adapter = new Adapter(this,items,fixedItems,GPSLockStatus);
+        recyclerView.setAdapter(adapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
+
+
     }
 
 
     public void savenote(View view) {
-        final String title = editTextTitle.getText().toString();
-        String description = editTextDescription.getText().toString();
+//        final String title = editTextTitle.getText().toString();
+//        String description = editTextDescription.getText().toString();
 //        Toast.makeText(getApplicationContext(),"Note on Saved",Toast.LENGTH_SHORT).show();
 
 
-        Map<String, Object> note = new HashMap<>();
-        note.put(KEY_TITLE, title);
-        note.put(KEY_DESCRIPTION, description);
+//        Map<String, Object> note = new HashMap<>();
+//        note.put(KEY_TITLE, title);
+//        note.put(KEY_DESCRIPTION, description);
 
         FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
                 .setPersistenceEnabled(true)
                 .build();
         db.setFirestoreSettings(settings);
 
-//        db.collection("UserData").document().set(note)
+//        db.collection("Hello").document().set(note)
 //                .addOnSuccessListener(new OnSuccessListener<Void>() {
 //                    @Override
 //                    public void onSuccess(Void aVoid) {
@@ -84,25 +127,57 @@ public class MainActivity extends Activity {
 //                        Log.d(TAG, e.toString());
 //                    }
 //                });
-
-
-        db.collection("UserData")
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            for (QueryDocumentSnapshot document : task.getResult()) {
-                                Log.d(TAG, document.getId() + " => " + document.getData());
-//                                Toast.makeText(getApplicationContext(), document.getId(), Toast.LENGTH_SHORT).show();
-                                textView.setText(title);
-                            }
-                        } else {
-                            Log.w(TAG, "Error getting documents.", task.getException());
-                        }
-                    }
-                });
     }
+
+
+        private void getNotes(){
+            db.collection("CarGPSLocation").orderBy("ServerTimeStamp", Query.Direction.DESCENDING).limit(1)
+                    .get()
+                    .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                            if (task.isSuccessful()) {
+                                for (QueryDocumentSnapshot document : task.getResult()) {
+                                    String CarID = document.getString("CarID");
+                                    String TripID= document.getString("TripID");
+                                    GeoPoint GeoPoint = document.getGeoPoint("GeoPoint");
+                                    Long BatterySoc = document.getLong("BatterySOC");
+                                    Long BatteryConnected = document.getLong("ChargerConnected");
+                                    Long DistanceTravelled = document.getLong("DistanceTravelled");
+                                    Long Speed = document.getLong("Speed");
+                                    Long ACStatus = document.getLong("ACStatus");
+                                    String TerrainBumpCount = document.getString("TerrainBumpCount");
+                                    double lat  = GeoPoint.getLatitude();
+                                    double longi = GeoPoint.getLongitude();
+                                    Long GPSSatelliteinView = document.getLong("GPSSatelliteInView");
+                                    GPSLockStatus = document.getLong("GPSLockStatus");
+
+
+//                                    String title = document.getString("CarID");
+//                                    String description = document.getString("Title");
+
+
+//                                    Log.d(TAG, document.getId() + " => " + document.getData());
+//                                    Toast.makeText(getApplicationContext(), document.getId(), Toast.LENGTH_SHORT).show();
+                                    items[0] = CarID;
+                                    items[1] = TripID;
+                                    items[2] = BatteryConnected +" , "+ String.valueOf(BatterySoc)+" V";
+                                    items[3] = String.valueOf(DistanceTravelled)+" Km";
+                                    items[4] = String.valueOf(Speed)+" Km/hr";
+                                    items[5] = (TerrainBumpCount);
+                                    items[6] = GPSSatelliteinView+ " - "+df.format(lat)+" , "+ df.format(longi) ;
+                                    items[7] = String.valueOf(ACStatus);
+
+                                    initRecyclerView();
+
+                                }
+                            } else {
+                                Log.w(TAG, "Error getting documents.", task.getException());
+                            }
+                        }
+                    });
+        }
+
 
 
 
