@@ -46,7 +46,7 @@ public class Adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     @Override
     public int getItemCount() {
-        return 8;
+        return 2;
     }
 
     @Override
@@ -66,11 +66,11 @@ public class Adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             super(itemView);
             textView = (TextView) itemView.findViewById(R.id.text1);
             FixedNames = (TextView) itemView.findViewById(R.id.text2);
-            if(gpsstatus==1){
-                textView.setTextColor(itemView.getResources().getColor(Text_Green));
-            }else{
-                textView.setTextColor(itemView.getResources().getColor(Text_Red));
-            }
+//            if(gpsstatus==1){
+//                textView.setTextColor(itemView.getResources().getColor(Text_Green));
+//            }else{
+//                textView.setTextColor(itemView.getResources().getColor(Text_Red));
+//            }
         }
     }
 }
