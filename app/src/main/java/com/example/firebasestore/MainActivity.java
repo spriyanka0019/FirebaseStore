@@ -48,8 +48,8 @@ import java.util.Map;
 public class MainActivity extends Activity {
 
     private static final String TAG = "MainActivity";
-    private static final String KEY_TITLE = "Title";
-    private static final String KEY_DESCRIPTION = "Description";
+    private static final String DB = "CarGPSLocation";
+    private static final String OrderBy = "ServerTimeStamp";
 
     private EditText editTextTitle;
     private EditText editTextDescription;
@@ -58,12 +58,12 @@ public class MainActivity extends Activity {
 
     RecyclerView recyclerView;
     Adapter adapter;
-    String[] items = new String[2];
+    String[] items = new String[8];
 
 //    String[] items = {"1","2"};
 
-    //    String[] fixedItems = {"CarID", "TripID", "SoC", "Distance", "Speed", "TerrainBumpCounts", "Location", "ACStatus"};
-    String[] fixedItems = {"CarID", "TripID"};
+    String[] fixedItems = {"CarID", "TripID", "SoC", "Distance", "Speed", "TerrainBumpCounts", "Location", "ACStatus"};
+//    String[] fixedItems = {"CarID", "TripID"};
 
 
     LinearLayoutManager layoutManager;
@@ -77,7 +77,6 @@ public class MainActivity extends Activity {
 
 
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
-    DocumentReference doc = db.collection("Hello").document("cdvhTHvSolKx3hVTkGJy");
     private ListenerRegistration noteListener;
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -168,7 +167,7 @@ public class MainActivity extends Activity {
 //        });
 //        // [END listen_multiple]
 
-        db.collection("Hello").orderBy("Time", Query.Direction.DESCENDING).limit(1)
+        db.collection(DB).orderBy(OrderBy, Query.Direction.DESCENDING).limit(1)
                 .addSnapshotListener(this, new EventListener<QuerySnapshot>() {
                     @Override
                     public void onEvent(@Nullable QuerySnapshot value,
@@ -181,25 +180,27 @@ public class MainActivity extends Activity {
 
                         List<String> cities = new ArrayList<>();
                         for (QueryDocumentSnapshot doc : value) {
-                            if (doc.get("Title") != null) {
-                                cities.add(doc.getString("Title"));
-                                cities.add(doc.getString("Description"));
+//                            if (doc.get("Title") != null) {
+//                                cities.add(doc.getString("Title"));
+//                                cities.add(doc.getString("Description"));
+//
+//                            }
 
-                            }
-
-                            String CarID = doc.getString("Title");
-                            String TripID = doc.getString("Description");
-//                    GeoPoint GeoPoint = value.getGeoPoint("GeoPoint");
-//                    Long BatterySoc = value.getLong("BatterySOC");
-//                    Long BatteryConnected = value.getLong("ChargerConnected");
-//                    Long DistanceTravelled = value.getLong("DistanceTravelled");
-//                    Long Speed = value.getLong("Speed");
-//                    Long ACStatus = value.getLong("ACStatus");
-//                    String TerrainBumpCount = value.getString("TerrainBumpCount");
-//                    double lat = GeoPoint.getLatitude();
-//                    double longi = GeoPoint.getLongitude();
-//                    Long GPSSatelliteinView = value.getLong("GPSSatelliteInView");
-//                    GPSLockStatus = value.getLong("GPSLockStatus");
+                            String CarID = doc.getString("CarID");
+                            String TripID = doc.getString("TripID");
+                            String Time = doc.getString("GPSTime");
+                            String Date = doc.getString("GPSRenderDate");
+                            GeoPoint GeoPoint = doc.getGeoPoint("GeoPoint");
+                            Long BatterySoc = doc.getLong("BatterySOC");
+                            Long BatteryConnected = doc.getLong("ChargerConnected");
+                            Long DistanceTravelled = doc.getLong("DistanceTravelled");
+                            Long Speed = doc.getLong("Speed");
+                            Long ACStatus = doc.getLong("ACStatus");
+                            String TerrainBumpCount = doc.getString("TerrainBumpCount");
+                            double lat = GeoPoint.getLatitude();
+                            double longi = GeoPoint.getLongitude();
+                            Long GPSSatelliteinView = doc.getLong("GPSSatelliteInView");
+                            GPSLockStatus = doc.getLong("GPSLockStatus");
 
 
 //                                    String title = document.getString("CarID");
@@ -212,12 +213,12 @@ public class MainActivity extends Activity {
                             Toast.makeText(getApplicationContext(), CarID, Toast.LENGTH_SHORT).show();
                             items[0] = CarID;
                             items[1] = TripID;
-//                    items[2] = BatteryConnected + " , " + String.valueOf(BatterySoc) + " V";
-//                    items[3] = String.valueOf(DistanceTravelled) + " Km";
-//                    items[4] = String.valueOf(Speed) + " Km/hr";
-//                    items[5] = (TerrainBumpCount);
-//                    items[6] = GPSSatelliteinView + " - " + df.format(lat) + " , " + df.format(longi);
-//                    items[7] = String.valueOf(ACStatus);
+                            items[2] = BatteryConnected + " , " + String.valueOf(BatterySoc) + " V";
+                            items[3] = String.valueOf(DistanceTravelled) + " Km";
+                            items[4] = String.valueOf(Speed) + " Km/hr";
+                            items[5] = (TerrainBumpCount);
+                            items[6] = GPSSatelliteinView + " -  [" + df.format(lat) + " , " + df.format(longi)+"] "+Time+" ; "+Date;
+                            items[7] = String.valueOf(ACStatus);
                             initRecyclerView();
 
 ////
