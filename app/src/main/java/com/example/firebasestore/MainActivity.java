@@ -28,6 +28,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
@@ -46,6 +47,24 @@ import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends Activity {
+
+    private static final String CAR_ID = "CarID";
+    private static final String TRIP_ID = "TripID";
+    private static final String ServerTimeStamp = "ServerTimeStamp";
+    private static final String GEOPOINT = "GeoPoint";
+    private static final String ELEVATION = "Elevation";
+    private static final String SPEED = "Speed";
+    private static final String GPS_LOCKSTATUS = "GPSLockStatus";
+    private static final String GPS_SATELLITE_INVIEW = "GPSSatelliteInView";
+    private static final String TERRAIN_BUMP_COUNT = "TerrainBumpCount";
+    private static final String BATTERY_SOC = "BatterySOC";
+    private static final String CHARGER_CONNECTED = "ChargerConnected";
+    private static final String AC_STATUS = "ACStatus";
+    private static final String GPSDate = "GPSRenderDate";
+    private static final String GPSTime = "GPSTime";
+    private static final String DistanceTravelled = "DistanceTravelled";
+    private static final String IPAddress = "IPAddress";
+
 
     private static final String TAG = "MainActivity";
     private static final String DB = "CarGPSLocation";
@@ -75,6 +94,7 @@ public class MainActivity extends Activity {
 
     public static final String KEy_T = "Title";
 
+    public static int trip= 3000 ;
 
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private ListenerRegistration noteListener;
@@ -86,13 +106,8 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         df.setMaximumFractionDigits(3);
-//        editTextTitle = (EditText) findViewById(R.id.edit_text_title);
-//        editTextDescription = (EditText) findViewById(R.id.edit_text_description);
         textView = (TextView) findViewById(R.id.text1);
         recyclerView = (RecyclerView) findViewById(R.id.recyclerview);
-
-//        button = (Button) findViewById(R.id.button);
-//        getNotes();
 
 
     }
@@ -101,14 +116,9 @@ public class MainActivity extends Activity {
         // use this setting to improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView
         recyclerView.setHasFixedSize(true);
-//        final LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-//        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-//        recyclerView.setLayoutManager(new LinearLayoutManager(recyclerView.getContext()));
         adapter = new Adapter(this, items, fixedItems, GPSLockStatus);
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
-
-
     }
 
     @Override
@@ -178,14 +188,8 @@ public class MainActivity extends Activity {
                         }
 
 
-                        List<String> cities = new ArrayList<>();
-                        for (QueryDocumentSnapshot doc : value) {
-//                            if (doc.get("Title") != null) {
-//                                cities.add(doc.getString("Title"));
-//                                cities.add(doc.getString("Description"));
-//
-//                            }
 
+                        for (QueryDocumentSnapshot doc : value) {
                             String CarID = doc.getString("CarID");
                             String TripID = doc.getString("TripID");
                             String Time = doc.getString("GPSTime");
@@ -202,28 +206,18 @@ public class MainActivity extends Activity {
                             Long GPSSatelliteinView = doc.getLong("GPSSatelliteInView");
                             GPSLockStatus = doc.getLong("GPSLockStatus");
 
-
-//                                    String title = document.getString("CarID");
-//                                    String description = document.getString("Title");
-
-                            System.out.println("CarID:" + CarID);
-
-
-//                                    Log.d(TAG, document.getId() + " => " + document.getData());
-                            Toast.makeText(getApplicationContext(), CarID, Toast.LENGTH_SHORT).show();
+//                            Toast.makeText(getApplicationContext(), CarID, Toast.LENGTH_SHORT).show();
                             items[0] = CarID;
                             items[1] = TripID;
                             items[2] = BatteryConnected + " , " + String.valueOf(BatterySoc) + " V";
                             items[3] = String.valueOf(DistanceTravelled) + " Km";
                             items[4] = String.valueOf(Speed) + " Km/hr";
                             items[5] = (TerrainBumpCount);
-                            items[6] = GPSSatelliteinView + " -  [" + df.format(lat) + " , " + df.format(longi)+"] "+Time+" ; "+Date;
+                            items[6] = GPSSatelliteinView + " -  [" + df.format(lat) + " , " + df.format(longi)+"] , "+ Date+";"+Time;
                             items[7] = String.valueOf(ACStatus);
                             initRecyclerView();
 
-////
                         }
-                        Log.d(TAG, "Current cites in CA: " + cities);
                     }
                 });
 
@@ -237,35 +231,51 @@ public class MainActivity extends Activity {
 //    }
 
     public void savenote(View view) {
+
 //        final String title = editTextTitle.getText().toString();
-//        String description = editTextDescription.getText().toString();
+////        String description = editTextDescription.getText().toString();
 //        Toast.makeText(getApplicationContext(),"Note on Saved",Toast.LENGTH_SHORT).show();
 
+        GeoPoint geoPoint = new GeoPoint(19.4369131,72.8445453);
+        trip = trip+1;
 
-//        Map<String, Object> note = new HashMap<>();
-//        note.put(KEY_TITLE, title);
-//        note.put(KEY_DESCRIPTION, description);
+        Map<String, Object> note = new HashMap<>();
+        note.put(CAR_ID, "STROMR3B");
+        note.put(TRIP_ID, String.valueOf(trip));
+        note.put(ServerTimeStamp, FieldValue.serverTimestamp());
+        note.put(ELEVATION, 234);
+        note.put(GEOPOINT, geoPoint);
+        note.put(SPEED, 67);
+        note.put(GPS_LOCKSTATUS, 1);
+        note.put(GPS_SATELLITE_INVIEW, 7);
+        note.put(TERRAIN_BUMP_COUNT, "None");
+        note.put(BATTERY_SOC, 40);
+        note.put(CHARGER_CONNECTED, 1);
+        note.put(AC_STATUS, 1);
+        note.put(GPSDate, "05/22/2020");
+        note.put(GPSTime, "6:06:00PM");
+        note.put(DistanceTravelled, 2345);
 
         FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
                 .setPersistenceEnabled(true)
                 .build();
         db.setFirestoreSettings(settings);
 
-//        db.collection("Hello").document().set(note)
-//                .addOnSuccessListener(new OnSuccessListener<Void>() {
-//                    @Override
-//                    public void onSuccess(Void aVoid) {
-//                        Toast.makeText(getApplicationContext(), "Note Saved", Toast.LENGTH_SHORT).show();
-//
-//                    }
-//                })
-//                .addOnFailureListener(new OnFailureListener() {
-//                    @Override
-//                    public void onFailure(@NonNull Exception e) {
-//                        Toast.makeText(getApplicationContext(), "Error!", Toast.LENGTH_SHORT).show();
-//                        Log.d(TAG, e.toString());
-//                    }
-//                });
+        db.collection(DB).document().set(note)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Toast.makeText(getApplicationContext(), "Note Saved", Toast.LENGTH_SHORT).show();
+
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(getApplicationContext(), "Error!", Toast.LENGTH_SHORT).show();
+                        Log.d(TAG, e.toString());
+                    }
+                });
     }
 
 
